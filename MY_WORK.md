@@ -143,6 +143,7 @@
 - The watchdog timer stopped the program at 27 seconds, after 2059 busy-waiting polls
 - Saved the console logs and the verification block for Part 3 questions
 - Committed my student ID
+  
 **Challenges**: I did not understand why two CPUs took the same process, and why P3 was lost
 
 **Solution**: I saved the logs and the verification block, so I can study the race condition and answer Part 3 questions
