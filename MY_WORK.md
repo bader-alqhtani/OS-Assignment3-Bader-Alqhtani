@@ -152,16 +152,21 @@
 
 ---
 
-### Entry 2 - [Date and Time]
-**What I did**:
+### Entry 2 - [November 13, 2026, 1:50 PM]
+**What I did**: I added a mutex lock (ReentrantLock) to the ReadyQueue class so the CPUs don’t touch the queue at the same time. After that I ran the program to test it.
 
 **Details**:
+- Imported ReentrantLock and made a lock variable called lock inside the ReadyQueue class.
+- Used lock.lock and try/finally with lock.unlock in add, poll, processOf and snapshot, because all of them touch the shared list and map.
+- Wrote short Feature 1 comments above the locks so it is clear what I changed.
+- Ran the program 5 times in VS Code. No crash and no watchdog, and all 15 processes finished. But contextSwitchCount was still wrong, 26 instead of 27, because SharedStats is not locked yet. This is for Feature 2.
+- Committed and pushed to GitHub.
+  
+**Challenges**: At first I declared the lock but forgot to use it in the methods, and VS Code showed an unused variable warning. Then I forgot a closing brace in snapshot. I also committed before adding the Feature 1 comment there, so I had to make another small commit.
 
-**Challenges**:
+**Solution**: I went back and wrapped all four methods with the lock. I made sure both return statements in poll stay inside the try block, so finally always unlocks it. Then I fixed the missing brace, added the comment, and pushed a quick follow-up commit.
 
-**Solution**:
-
-**Time spent**:
+**Time spent**: 50 minutes
 
 ---
 
