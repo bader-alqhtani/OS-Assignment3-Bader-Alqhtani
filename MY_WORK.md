@@ -170,16 +170,21 @@
 
 ---
 
-### Entry 3 - [Date and Time]
-**What I did**:
+### Entry 3 - [November 13, 2026, 3:50 PM]
+**What I did**: I added three separate ReentrantLocks to the SharedStats class for Feature 2, one for each shared counter, so the CPUs update and read the statistics safely without losing any update.
 
 **Details**:
+- Made three separate locks in SharedStats: contextSwitchLock, completedProcessLock and serviceTimeLock. I used one lock for each counter because the three counters are independent, so one update does not need to block the others.
+- Put lock and try/finally with unlock in the three update methods, incrementContextSwitch, incrementCompletedProcess and addServiceTime, and also in the three getters.
+- Wrote short Feature 2 comments above the locks.
+- Ran the program 5 times in VS Code. The first three lines in the verification block were correct in all runs, 27 context switches, 15 completed processes and 61364 ms service time. Only the busy-waiting polls line was still wrong, and that is for Feature 3.
+- Committed and pushed to GitHub.
 
-**Challenges**:
+**Challenges**:  I was not sure if I should use one lock for all the counters or one lock for each counter. I also did not understand why the getters need a lock, since they only read the value.
 
-**Solution**:
+**Solution**: The three counters are independent, so I used three separate locks. For the getters, I understood that reading in the middle of an update is not safe, so each getter uses the same lock as its update method.
 
-**Time spent**:
+**Time spent**: 40 minutes
 
 ---
 
