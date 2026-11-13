@@ -188,16 +188,22 @@
 
 ---
 
-### Entry 4 - [Date and Time]
-**What I did**:
+### Entry 4 - [November 13, 2026, 7:40 PM]
+**What I did**: I did Feature 3. I removed the busy waiting loop and used a counting Semaphore. Now the idle CPUs wait when the ready queue is empty and they stop when all the processes finish.
 
 **Details**:
+- Imported Semaphore and made a semaphore called availableProcesses with the starting value 0 inside the ReadyQueue class.
+- Added release in the add method every time a process enters the queue. I also made two small methods called waitForProcess and wakeAllCpus.
+- Removed the Thread.sleep 20 polling code from CpuWorker run and used waitForProcess there instead.
+- When the last process finishes I call wakeAllCpus with totalCPUs. If poll gives null the CPU uses break so it stops.
+- Ran the program 5 times in VS Code. All four lines in the verification block passed in every run and Busy-waiting polls was 0.
+- Committed and pushed Feature 3 to GitHub.
 
-**Challenges**:
+**Challenges**: At first I was not sure if I should remove the old sleep and continue lines. I also forgot a closing brace at the end of CpuWorker. It was also hard for me to understand how the waiting CPUs wake up and stop after the last process finishes.
 
-**Solution**:
+**Solution**: I read the TODO comments in CpuWorker and understood that the polling block should be removed. I fixed the missing brace. For the ending I release one permit for each CPU when the last process completes. Then the waiting CPUs wake up and get null from poll and break out of the loop.
 
-**Time spent**:
+**Time spent**: 1 hour 15 minutes
 
 ---
 
