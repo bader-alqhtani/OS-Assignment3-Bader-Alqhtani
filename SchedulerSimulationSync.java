@@ -162,7 +162,7 @@ class ReadyQueue {
 
     // Names of the processes currently waiting in the queue (used to display the ready queue)
     public String snapshot() {
-        // Take lock first before iterating over the list and map
+        // Feature 1: Take lock first before iterating over the list and map
         lock.lock();
         try {
             StringBuilder sb = new StringBuilder();
