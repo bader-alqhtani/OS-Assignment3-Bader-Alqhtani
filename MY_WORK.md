@@ -263,7 +263,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+Before this assignment, I only saw the word sync in video game settings and I did not know what it really means. I also thought that if a program runs on many threads, every thread just works alone without problems. When I ran the starter code, CPU-2 and CPU-3 picked process P2 at the same time, and the program crashed with IllegalThreadStateException. I learned that this is a race condition, because many threads do read-modify-write steps on shared data without protection, so updates get lost, like contextSwitchCount that was 26 instead of 27 before I locked SharedStats. To fix these critical sections, I used ReentrantLock, which is a mutex lock, with lock before try and unlock inside finally, so only one CPU can enter at a time and this gives mutual exclusion. I also learned that a counting Semaphore like availableProcesses is different from a mutex lock, because it counts the processes in the queue and makes the idle CPUs wait blocked instead of wasting time in 2059 busy waiting polls. At the end, seeing the verification block change from crashes to four green checkmarks helped me understand why synchronization is important.
 
 ## Question 2: What was the most challenging part of this assignment?
 
@@ -271,7 +271,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+The most challenging part for me was the shutdown of the CPUs in Feature 3. I did not understand what happens to the other CPUs that are waiting on the semaphore when the last process finishes. No new process will enter the queue, so nobody calls release, and the waiting CPUs stay blocked on acquire forever. In my test the program did not stop by itself and the watchdog ended it. It was hard because there was no error message, the program just got stuck, so I had to think about what each CPU is doing at the end. I solved it by making the CPU that finishes the last process call wakeAllCpus with totalCPUs. Then the waiting CPUs wake up, get null from poll and break out of the loop.
 
 ## Question 3: How did you overcome the challenges you faced?
 
@@ -279,7 +279,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+To overcome the challenges, I followed the README roadmap step by step and read the TODO comments in the code before changing anything. When I was confused about the race condition, I looked at RaceWindow.pause to see how two CPUs can mix between reading and writing the shared variables. The comments in the starter file also helped me understand why the getters in SharedStats need locks and why the old sleep polling code should be removed. When I made small mistakes like a missing closing brace in snapshot and in CpuWorker, I fixed them using the VS Code error messages. After each feature I ran the program several times in VS Code, and after Feature 3 I ran it 5 times and all four verification lines passed before I committed to GitHub.
 
 ## Question 4: Where can synchronization concepts be applied in real-world applications?
 
@@ -287,19 +287,19 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+Synchronization is used in many real applications where many users or threads use the same data at the same time. In a banking app, if two transfers take money from the same balance without a mutex lock, a race condition can happen and one update is lost, just like the unprotected counters in SharedStats. In an online seat booking website, checking that a seat is free and reserving it must be a critical section, so two users cannot book the same seat, just like CPU-2 and CPU-3 picked P2 together. In an online game, if two players pick up the same item at the same moment, the server must use a lock so only one player gets it. A counting semaphore like availableProcesses is also useful in a print queue, because the print thread can wait blocked when there are no documents instead of using busy waiting. Databases also lock different rows separately, similar to the three independent locks in SharedStats, so updating one row does not block other users.
 
 ### Optional: What would you like to learn more about?
 
-[Any topics related to synchronization or operating systems that you're curious about?]
+
 
 ### Optional: How confident do you feel about synchronization concepts now?
 
-[Beginner / Intermediate / Confident. What do you understand well? What needs more practice?]
+
 
 ### Optional: Feedback on the assignment
 
-[Any comments? Was it helpful? Too easy or hard? Suggestions?]
+
 
 ---
 
