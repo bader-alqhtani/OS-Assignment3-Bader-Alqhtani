@@ -263,7 +263,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-Before this assignment, I only saw the word sync in video game settings and I did not know what it really means. I also thought that if a program runs on many threads, every thread just works alone without problems. When I ran the starter code, CPU-2 and CPU-3 picked process P2 at the same time, and the program crashed with IllegalThreadStateException. I learned that this is a race condition, because many threads do read-modify-write steps on shared data without protection, so updates get lost, like contextSwitchCount that was 26 instead of 27 before I locked SharedStats. To fix these critical sections, I used ReentrantLock, which is a mutex lock, with lock before try and unlock inside finally, so only one CPU can enter at a time and this gives mutual exclusion. I also learned that a counting Semaphore like availableProcesses is different from a mutex lock, because it counts the processes in the queue and makes the idle CPUs wait blocked instead of wasting time in 2059 busy waiting polls. At the end, seeing the verification block change from crashes to four green checkmarks helped me understand why synchronization is important.
+Before this assignment, I only saw the word sync in video game settings and I did not know what it really means. I also thought that if a program runs on many threads, every thread just works alone without problems. When I ran the starter code, CPU-2 and CPU-3 picked process P2 at the same time, and CPU-2 threw IllegalThreadStateException. I learned that this is a race condition, because many threads do read-modify-write steps on shared data without protection, so updates get lost, like contextSwitchCount that was 26 instead of 27 before I locked SharedStats. To fix these critical sections, I used ReentrantLock, which is a mutex lock, with lock before try and unlock inside finally, so only one CPU can enter at a time and this gives mutual exclusion. I also learned that a counting Semaphore like availableProcesses is different from a mutex lock, because it counts the processes in the queue and makes the idle CPUs wait blocked instead of wasting time in 2059 busy waiting polls. At the end, seeing the verification block change from crashes to four green checkmarks helped me understand why synchronization is important.
 
 ## Question 2: What was the most challenging part of this assignment?
 
@@ -271,7 +271,7 @@ Before this assignment, I only saw the word sync in video game settings and I di
 
 **Your Answer:** *(5-7 sentences)*
 
-The most challenging part for me was the shutdown of the CPUs in Feature 3. I did not understand what happens to the other CPUs that are waiting on the semaphore when the last process finishes. No new process will enter the queue, so nobody calls release, and the waiting CPUs stay blocked on acquire forever. In my test the program did not stop by itself and the watchdog ended it. It was hard because there was no error message, the program just got stuck, so I had to think about what each CPU is doing at the end. I solved it by making the CPU that finishes the last process call wakeAllCpus with totalCPUs. Then the waiting CPUs wake up, get null from poll and break out of the loop.
+The most challenging part for me was the shutdown of the CPUs in Feature 3. I did not understand what happens to the other CPUs that are waiting on the semaphore when the last process finishes. No new process will enter the queue, so nobody calls release, and the waiting CPUs stay blocked on acquire forever. It was hard because I had to think about what each CPU is doing at the end, since no process is left to release the semaphore. I solved it by making the CPU that finishes the last process call wakeAllCpus with totalCPUs. Then the waiting CPUs wake up, get null from poll and break out of the loop.
 
 ## Question 3: How did you overcome the challenges you faced?
 
@@ -343,6 +343,7 @@ Verification block of **my final version**:
 
 **Explanation of the timeline:**
 For example, assume contextSwitchCount = 20:
+
 1. CPU-2 reads contextSwitchCount = 20.
 2. CPU-2 pauses at RaceWindow.pause.
 3. CPU-3 reads contextSwitchCount = 20.
@@ -385,6 +386,7 @@ In the starter code, a CPU that found the queue empty ran Thread.sleep 20 and ch
 > 💡 **TIP:** Recall the bounded-buffer solution of the slides (`empty`, `full`, `mutex`) and the order of `wait()` calls in the producer and the consumer. For the deadlock, think about a producer that holds the mutex while waiting for a free slot that only a consumer (who needs the mutex) can create.
 
 **Your Answer:** *(3-5 sentences)*
+
 This is the Bounded-Buffer problem, also called Producer-Consumer. Main and the CpuWorkers that put an unfinished process back in the queue are producers, and the CpuWorkers that take a process with poll are consumers. For a bounded queue I would need three semaphores, mutex starting at 1, full starting at 0 and empty starting at K. A deadlock can happen if a producer takes the mutex before it waits on empty when the queue is full, because it waits for a free slot while holding the mutex and no consumer can take the mutex to make one, and I would prevent it by breaking the hold and wait condition, so a thread waits on the semaphore first and takes the mutex after that.
 
 **Classical problem and roles**:
