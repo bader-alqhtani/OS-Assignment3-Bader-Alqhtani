@@ -207,16 +207,21 @@
 
 ---
 
-### Entry 5 - [Date and Time]
-**What I did**:
+### Entry 5 - [November 14, 2026, 6:30 PM]
+**What I did**: I completed Part B (Reflection) and Part C (Technical Answers and Summary) in MY_WORK.md.
 
 **Details**:
+- Wrote my answers for the four reflection questions in Part B, and each answer is between 5 and 7 sentences.
+- Answered the four technical questions in Part C with 3 to 5 sentences each, and pasted my original starter block and my final block in Question 1.
+- Filled the Part C summary and checked that the numbers match my output, 27 context switches, 15 processes, 61364 ms service time and 0 busy waiting polls.
+- Fixed some small details in the reflection and the formatting, so the answers match my development log.
+- Committed and pushed the reflection and the technical answers to GitHub.
 
-**Challenges**:
+**Challenges**: It took time to keep every answer short enough for the sentence limits and still explain the code clearly.
 
-**Solution**:
+**Solution**: I focused on the main points from my runs and checked each paragraph before I committed.
 
-**Time spent**:
+**Time spent**: 1 hour 10 minutes
 
 ---
 
@@ -237,13 +242,13 @@
 
 > 💡 **TIP:** Fill this in **last**, after all entries are written.
 
-**Total time spent on assignment**: [X hours]
+**Total time spent on assignment**: 4 hours 40 minutes
 
-**Most challenging part**:
+**Most challenging part**: The shutdown of the CPUs in Feature 3, because I had to understand what happens to the waiting CPUs when the last process finishes and nobody calls release.
 
-**Most interesting learning**:
+**Most interesting learning**: The difference between busy waiting and a semaphore. In the starter the CPUs kept checking the queue 2059 times, and in my final version they just wait blocked until a process arrives.
 
-**What I would do differently next time**:
+**What I would do differently next time**: I would start earlier and write the development log at the end of each work session, so the dates are spread over more days.
 
 ---
 
