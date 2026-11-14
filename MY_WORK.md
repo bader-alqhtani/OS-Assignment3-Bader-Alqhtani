@@ -321,20 +321,35 @@ Synchronization is used in many real applications where many users or threads us
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+In my starter run all four lines failed: context switches were 26 instead of 27, off by 1, completed processes were 14 instead of 15, off by 1, because process P3 was lost in the ReadyQueue race, total service time was 59119 ms instead of 61364 ms, off by 2245 ms, and busy waiting polls were 2059 instead of 0. A lost update happens on a shared variable like contextSwitchCount because the increment is not atomic: a CPU reads the value into tmp, RaceWindow.pause lets another CPU read the same value, and then both write tmp + 1, so one increment is lost. On a real machine the same race condition can happen without RaceWindow, because the OS can switch the thread in the very small time between the read and the write. This bug is hard to detect because it depends on exact timing, so the program can pass many runs and fail only sometimes under a different CPU load.
 
 Verification block of the **original starter**:
 ```
-[Paste the verification block (or the exception/watchdog message) of the starter here]
+  Context switches (quanta executed)     expected 27       observed 26       ✘ MISMATCH
+  Completed processes                    expected 15       observed 14       ✘ MISMATCH
+  Total service time (ms)                expected 61364    observed 59119    ✘ MISMATCH
+  Busy-waiting polls (must be 0)         expected 0        observed 2059     ✘ MISMATCH
+  ✘ At least one check failed (see the ✘ lines above): a race condition or busy waiting is still present.
 ```
 
 Verification block of **my final version**:
 ```
-[Paste the verification block of your final version here (all lines ✔)]
+  Context switches (quanta executed)     expected 27       observed 27       ✔
+  Completed processes                    expected 15       observed 15       ✔
+  Total service time (ms)                expected 61364    observed 61364    ✔
+  Busy-waiting polls (must be 0)         expected 0        observed 0        ✔
+  ✔ All shared values are consistent.
 ```
 
 **Explanation of the timeline:**
-[Explain the lost update step by step.]
+For example, assume contextSwitchCount = 20:
+1. CPU-2 reads contextSwitchCount = 20.
+2. CPU-2 pauses at RaceWindow.pause.
+3. CPU-3 reads contextSwitchCount = 20.
+4. CPU-2 writes 21.
+5. CPU-3 writes 21.
+6. The expected value is 22, but the final value is 21.
+7. One update is lost because there is no mutual exclusion.
 
 ## Question 2: Critical Sections and Lock Granularity
 
@@ -344,12 +359,14 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+In SharedStats, I used one lock per variable, contextSwitchLock, completedProcessLock and serviceTimeLock, because the three counters are independent, so updating one counter does not block a CPU that updates a different counter. The trade-off is that more locks means more code to manage and a risk of deadlock if one method takes two locks in different orders, while one global lock is simpler but makes the CPUs wait for each other without a reason. ReadyQueue uses its own lock because poll holds it while it calls RaceWindow.pause, and if the statistics used the same lock, other CPUs would wait to update the counters for nothing. My solution provides mutual exclusion because every critical section uses lock with try and finally unlock, so only one thread can read or write a shared variable at a time. Progress is satisfied because if no thread is inside a critical section, a waiting thread can enter without delay and the lock is always released in finally, but a default ReentrantLock is not fair, so a new thread can take the lock before a thread that is already waiting and bounded waiting is not guaranteed.
 
 | Critical section (variable / method) | Lock used | Why it needs protection |
 |---|---|---|
-| [e.g., `ReadyQueue.poll()`] | [lock name] | [reason] |
-| [...] | [...] | [...] |
+| ReadyQueue add, poll, processOf and snapshot | the lock in ReadyQueue | they read and change the shared list and map |
+| incrementContextSwitch and its getter | contextSwitchLock | read, then write on contextSwitchCount |
+| incrementCompletedProcess and its getter | completedProcessLock | read, then write on completedProcessCount |
+| addServiceTime and its getter | serviceTimeLock | read, then write on totalServiceTime |
 
 ## Question 3: Busy Waiting vs Semaphore
 
@@ -359,7 +376,7 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+In the starter code, a CPU that found the queue empty ran Thread.sleep 20 and checked again and again, so it wasted CPU time and the starter had 2059 busy waiting polls. In my fix, the semaphore availableProcesses counts the processes that are in the ready queue, because every add calls release and every poll is preceded by an acquire. It starts at 0 because the queue is empty when it is created, and it becomes 15 after main calls add for the 15 initial processes. A CPU that waits on acquire is blocked and does not use the CPU, which is different from busy waiting. When the last process finishes, that CPU calls release with totalCPUs, so every blocked CPU wakes up, gets null from poll and exits, and if it did not do this the other CPUs would stay blocked forever.
 
 ## Question 4: Classical Problems and Deadlock
 
@@ -368,15 +385,16 @@ Verification block of **my final version**:
 > 💡 **TIP:** Recall the bounded-buffer solution of the slides (`empty`, `full`, `mutex`) and the order of `wait()` calls in the producer and the consumer. For the deadlock, think about a producer that holds the mutex while waiting for a free slot that only a consumer (who needs the mutex) can create.
 
 **Your Answer:** *(3-5 sentences)*
+This is the Bounded-Buffer problem, also called Producer-Consumer. Main and the CpuWorkers that put an unfinished process back in the queue are producers, and the CpuWorkers that take a process with poll are consumers. For a bounded queue I would need three semaphores, mutex starting at 1, full starting at 0 and empty starting at K. A deadlock can happen if a producer takes the mutex before it waits on empty when the queue is full, because it waits for a free slot while holding the mutex and no consumer can take the mutex to make one, and I would prevent it by breaking the hold and wait condition, so a thread waits on the semaphore first and takes the mutex after that.
 
 **Classical problem and roles**:
-[Name the problem; who is the producer, who is the consumer?]
+This is the Bounded-Buffer problem, also called Producer-Consumer. The CpuWorker threads are consumers because they take a process from the ReadyQueue with poll. Main is a producer because it adds the first 15 processes, and the CpuWorkers are also producers when they put an unfinished process back in the queue.
 
 **Semaphores for a bounded queue (name and initial value)**:
-[Name the three semaphores and their initial values.]
+I would need three semaphores. mutex starts at 1 to protect the queue, full starts at 0 to count the processes in the queue, and empty starts at K to count the free slots.
 
 **Deadlock scenario and prevention**:
-[Describe the scenario and the necessary condition you would break.]
+If a producer takes the mutex before it waits on empty and the queue is full, it waits for a free slot while it holds the mutex. A consumer needs the same mutex to take a process and free a slot, so both wait forever. To prevent this I would break the hold and wait condition, so every thread waits on the semaphore first and takes the mutex after that, which is what my CpuWorker does when it calls waitForProcess before poll.
 
 ## Summary
 
