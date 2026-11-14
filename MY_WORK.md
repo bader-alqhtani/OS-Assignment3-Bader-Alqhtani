@@ -399,13 +399,13 @@ If a producer takes the mutex before it waits on empty and the queue is full, it
 ## Summary
 
 **Key concepts I understood through these questions:**
-1.
-2.
-3.
+1. A race condition happens when many threads change shared data without protection, so an update can be lost.
+2. A mutex lock gives mutual exclusion, and unlock must be in finally so the lock is always released.
+3. A counting semaphore lets a CPU wait blocked instead of busy waiting, and the last CPU must release totalCPUs so the waiting CPUs can stop.
 
 **Concepts I need to study more:**
-1.
-2.
+1. Deadlock and the four necessary conditions, because it was the hardest part of question 4.
+2. Fair locks and bounded waiting, and how they change the order of the waiting threads.
 
 ---
 
